@@ -22,6 +22,8 @@ var api = new ParseServer({
   },
   publicServerURL: process.env.SERVER_URL || 'http://localhost:1337/parse',
   appName: process.env.APP_NAME ||'My App Name',
+  // Enable email verification
+  verifyUserEmails: true,
   emailAdapter: {
   	module: 'parse-server-simple-mailgun-adapter',
   	options: {
