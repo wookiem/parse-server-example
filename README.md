@@ -87,15 +87,15 @@ https://api.mailgun.net/v3/samples.mailgun.org/messages \
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
 * Complete the Heroku deployment form: 
-	- Select your Heroku `App_Name` -- this must be unique across all heroku apps (or let Heroku pick a name for you)
+	- Enter your Heroku `App_Name` -- this must be unique across all heroku apps (or let Heroku pick name for you)
 	- Select the region to deploy your server (i.e. United States or Europe)
 	- mLab MongoDB is automatically selected as an add-on
 *  Next, you will be asked to configure the following environmental variables:
 ```
-	PARSE_MOUNT:					Accept the default (`parse`)
-	APP_ID:								Must match <appId> from the snowflake react-native src/lib/config.js file
-	MASTER_KEY: 					Must match <masterKey> from the snowflake react-native src/lib/config.js file
-	SERVER_URL: 					Replace 'yourappname' to match your Heroku 'App_Name' (http://<yourappname>.herokuapp.com/parse)
+  PARSE_MOUNT:          Accept the default (`parse`)
+  APP_ID:               Must match <appId> from the snowflake react-native src/lib/config.js file
+  MASTER_KEY:           Must match <masterKey> from the snowflake react-native src/lib/config.js file
+  SERVER_URL:           Replace 'yourappname' to match your Heroku 'App_Name' (http://<yourappname>.herokuapp.com/parse)
 ```
 
 * Add the following additional environment variables which will be used to configure `parse-server`:
@@ -103,27 +103,27 @@ https://api.mailgun.net/v3/samples.mailgun.org/messages \
 	- Click on `Reveal Config Vars`
 	- Set the following `Key` and `Value` pairs:
 ```	
-	MONGODB_URI:					This variable is created automatically for you -- don't modify its value
-	APP_NAME:							Choose the app name you want to appear in email confirmation & password reset and emails					
-	MAILGUN_API_KEY: 			Must match Mailgun `Active API Key`
-	MAILGUN_DOMAIN: 			Must match your <custom domain name>
-	MAILGUN_FROM_ADDRESS: Use <anything>@<custom domain name>
-	VERBOSE: 							Set to true so Heroku keeps detailed logs
+  MONGODB_URI:          This variable is created automatically for you -- don't modify its value
+  APP_NAME:             Choose the app name you want to appear in email confirmation & password reset and emails					
+  MAILGUN_API_KEY:      Must match Mailgun `Active API Key`
+  MAILGUN_DOMAIN:       Must match your <custom domain name>
+  MAILGUN_FROM_ADDRESS: Use <anything>@<custom domain name>
+  VERBOSE:              Set to true so Heroku keeps detailed logs
 ```
 	
 #### Deploy parse-server locally
 * Configure the same set of environment variables on your local computer
 * For example, on MacOS, edit the `~/.bash_profile` file and add the following:
 ```
-	export APP_ID= "<same as above>"
-	export APP_NAME="<same as above>"
-	export MAILGUN_API_KEY="<same as above>"
-	export MAILGUN_DOMAIN="<same as above>"
-	export MAILGUN_FROM_ADDRESS="<same as above>"
-	export MASTER_KEY="<same as above>"
-	export MONGODB_URI="<same as above>"
-	export PARSE_MOUNT="<same as above>"
-	export SERVER_URL="http://localhost:1337/parse"
+  export APP_ID= "<same as above>"
+  export APP_NAME="<same as above>"
+  export MAILGUN_API_KEY="<same as above>"
+  export MAILGUN_DOMAIN="<same as above>"
+  export MAILGUN_FROM_ADDRESS="<same as above>"
+  export MASTER_KEY="<same as above>"
+  export MONGODB_URI="<same as above>"
+  export PARSE_MOUNT="<same as above>"
+  export SERVER_URL="http://localhost:1337/parse"
 ```
 	
 * You'll need to relaunch MacOS terminal to set the new environment variables
@@ -185,22 +185,21 @@ curl -X POST \
 * Clone the parse-dashboard from `https://github.com/ParsePlatform/parse-dashboard#getting-started`
 * Install the dashboard:
 ```
-	npm install
-	
+  npm install
 ```
 * modify the `package.json` file by adding the following two lines in the existing `scripts` section:
 ```
   "scripts": {
     "local": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL http://localhost:1337/parse",
-		"remote": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL https://snowflake-parse.herokuapp.com/parse"
-	}
+     "remote": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL https://snowflake-parse.herokuapp.com/parse"
+  }
 ```
 * To run parse-dashboard against the local version of parse-server, type:
 ```
-	npm run local
+  npm run local
 ```
 
 * To run parse-dashboard against the local version of parse-server, type:
 ```
-	npm run remote
+  npm run remote
 ```
