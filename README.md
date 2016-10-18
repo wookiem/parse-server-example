@@ -146,16 +146,31 @@ curl -X POST \
   http://localhost:1337/parse/functions/hello
 ```
 
-#### Test with your snowflake app
+#### Test local parse-server with your snowflake app
 * Follow instructions to install snowflake app at `https://github.com/bartonhammond/snowflake`
 * Copy src/lib/config.example.js to src/lib/config.js 
-* Set `parseLocal: true`
-* Set `hapiRemote: false`, `hapiLocal: false`, `parseRemote: false`
-* Set Parse fields:
-	- Set `appId: <APP_ID>` (must match `APP_ID` environmental variable)
-	- Set `masterKey: <MASTER_KEY>` (must match `MASTER_KEY` environmental variable
-	- Set local <SERVER_URL> (must match *local computer's* `SERVER_URL` environmental variable)
-	- Set remote `url: <SERVER_URL>` (must match *heroku's* `SERVER_URL` environmental variable)
+* Change config.js as
+```
+  module.exports = {
+    SESSION_TOKEN_KEY: 'SESSION_TOKEN_KEY',
+  backend: {
+    hapiRemote: false,
+    hapiLocal: false,
+    parseRemote: false,
+    parseLocal:  true
+  },
+  PARSE: {
+ 		appId: <APP_ID>,              // must match `APP_ID` environmental variable
+ 		masterKey: '<MASTER_KEY>',    // must match `MASTER_KEY` environmental variable
+    local: {
+    	url: '<LOCAL_SERVER_URL>',  // must match *local computer's* `SERVER_URL` environmental variable
+    },
+    remote: {
+    	url: '<REMOTE_SERVER_URL>'  // must match *heroku's* SERVER_URL environmental variable
+    } 		
+  }
+}
+```
 
 #### Deploy parse-server on Heroku
 * Clone this parse-server for Snowflake repo and change directory to it
@@ -169,15 +184,16 @@ curl -X POST \
 * Push your repo to Heroku:
 	- Type `git push heroku master`
 
-#### Test with your snowflake app
+#### Test remote parse-server with your snowflake app
 * Modify src/lib/config.js 
-* Set `parseLocal: true`
-* Set `hapiRemote: false`, `hapiLocal: false`, `parseLocal: false`
-* Set Parse fields:
-	- Set `appId: <APP_ID>` (must match `APP_ID` environmental variable)
-	- Set `masterKey: <MASTER_KEY>` (must match `MASTER_KEY` environmental variable
-	- Set local <SERVER_URL> (must match *local computer's* `SERVER_URL` environmental variable)
-	- Set remote `url: <SERVER_URL>` (must match *heroku's* `SERVER_URL` environmental variable)
+```
+  backend: {
+    hapiRemote: false,
+    hapiLocal: false,
+    parseRemote: true,
+    parseLocal:  false
+  },
+```
 
 #### Deploy parser-server-dashboard
 * Parse server dashboard allows you to inspect the contents of the parse database
@@ -191,7 +207,7 @@ curl -X POST \
 ```
   "scripts": {
     "local": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL http://localhost:1337/parse",
-     "remote": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL https://snowflake-parse.herokuapp.com/parse"
+    "remote": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL https://snowflake-parse.herokuapp.com/parse"
   }
 ```
 * To run parse-dashboard against the local version of parse-server, type:
