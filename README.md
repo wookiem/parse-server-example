@@ -1,116 +1,140 @@
-# parse-server-example
+# parse-server for Snowflake
 
-Example project using the [parse-server](https://github.com/ParsePlatform/parse-server) module on Express.
+Example project using:
+- The [parse-server](https://github.com/ParsePlatform/parse-server) module on Express
+- Can run parse-server locally or deploy it remotely on Heroku
+- Uses Mailgun for email confirmation and password resets
 
-Read the full Parse Server guide here: https://github.com/ParsePlatform/parse-server/wiki/Parse-Server-Guide
+Additional reading:
+- Full Parse Server guide here: https://github.com/ParsePlatform/parse-server/wiki/Parse-Server-Guide
+- Other deployment options beyond Heroku can be found here: https://github.com/ParsePlatform/parse-server-example
 
-### For Local Development
+#### Test with your snowflake app
+* For your convenience, an instance of parse-server is running remotely on Heroku
+* Follow instructions to install snowflake app at `https://github.com/bartonhammond/snowflake`
+* Copy src/lib/config.example.js to src/lib/config.js 
+* Set `parseRemote: true`
+* Set `hapiRemote: false`, `hapiLocal: false`, `parseLocal: false`
+* Set Parse fields:
+	- Set `appId: snowflake`
+	- Set `masterKey: myMasterKey`
+	- Set remote `url: http://snowflake-parse.herokuapp.com/parse`
+* Run your snowflake app and confirm that you can Register, Update Log out, Reset password, etc.
 
-* Make sure you have at least Node 4.3. `node --version`
-* Clone this repo and change directory to it.
-* `npm install`
-* Install mongo locally using http://docs.mongodb.org/master/tutorial/install-mongodb-on-os-x/
-* Run `mongo` to connect to your database, just to make sure it's working. Once you see a mongo prompt, exit with Control-D
-* Run the server with: `npm start`
-* By default it will use a path of /parse for the API routes.  To change this, or use older client SDKs, run `export PARSE_MOUNT=/1` before launching the server.
-* You now have a database named "dev" that contains your Parse data
-* Install ngrok and you can test with devices
+### Steps to setup your own parse-server for Snowflake
 
-### Getting Started With Heroku + mLab Development
+#### Obtain a domain name
+* Mailgun requires you to have a custom domain from which to send emails
+* If you don't have a custom domain name already, obtain one now (Namecheap and GoDaddy are popular)
+* Namecheap will be used as the domain name provider in this example (`https://www.namecheap.com`)
 
-#### With the Heroku Button
+#### Signup for a free Mailgun account
+* Mailgun will be used to send email confirmation and password reset emails
+* Register at `https://mailgun.com/signup`
+* Click on `Domains` in the upper menu bar
+* Click on `Add New Domain` and enter your custom domain name
+* Click on `Domain Verification & DNS`
+* Important Note: You will find information here on configuring `TXT` and `MX` records.
+* However, you will need to make slight modifications to this information in the next steps
+
+#### Configure your domain name registrar to use Mailgun for email
+* Log back into your domain registrar if necessary (assumes `Namecheap` in this example)
+* Select `Domain List` from the left menu bar
+* Select your custom domain
+* Click on `Manage`
+* Click on `Advanced DNS`
+* The following configuration steps are specific to using Namecheap
+* They require you to make slight but important modifications to the configuration information provided by Mailgun.
+* If you are using a different registrar, then you can obtain additional information here `https://help.mailgun.com/hc/en-us/articles/202052074-How-do-I-verify-my-domain-`
+* Add first `TXT` record from Mailgun, the one with value that starts with `v=spf1`, however use @ as the host name instead of using your actual custom domain
+* Add second `TXT` record from Mailgun, the one with value that starts with `k=rsa;`, however, use `smtp._domainkey.` (i.e. don't append your custom domain).  Don't forget to include the trailing `.`
+* Add both `MX` records, but use `@` as the hostname in both cases
+* We skip adding the `CNAME` record in this example, as this is used for email tracking purposes only
+* These changes will take up to 30 minutes to propagate before they become available to Mailgun
+
+#### Confirm Mailgun is ready to use email
+* Click on `Domains` in the upper menu bar
+* Select your domain
+* Click on `Domain Verification & DNS`
+* Click on `Check DNS Records Now`
+* Confirm that the `Current Value` field matches the `Enter This Value` field for both `TXT` and both `MX` records
+* Additional information is available here `https://help.mailgun.com/hc/en-us/articles/202052074-How-do-I-verify-my-domain-`
+* If necessary, obtain support from Mailgun and/or your domain registrar
+
+#### Obtain Mailgun API Keys
+* In Mailgun, click on your username in top right corner
+* Select `Security` from the dropdown
+* Select the `API Keys` tab
+* Copy the `Active API Key`
+
+Here's sample curl code for sending an email using your custom domain:
+
+```
+curl -s --user '<Active API Key>' \ 
+https://api.mailgun.net/v3/samples.mailgun.org/messages \
+ -F from='Snowflake Server <info@<your-domain-name>' \
+ -F to='<enter the receiving email address>' \
+ -F subject='Hello' \
+ -F text='Testing some Mailgun awesomeness!'
+```
+
+#### Setup Heroku
+* Setup parse-server on Heroku first since it will also setup MongoDB
+	- Then you can run parse-server either locally or remotely at Heroku
+	- In both cases, you'll be running MongoDB remotely
+* Click the Heroku Button
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
-#### Without It
+* Complete the Heroku deployment form: 
+	- Enter your Heroku `App_Name` -- this must be unique across all heroku apps (or let Heroku pick name for you)
+	- Select the region to deploy your server (i.e. United States or Europe)
+	- mLab MongoDB is automatically selected as an add-on
+*  Next, you will be asked to configure the following environmental variables:
+```
+  PARSE_MOUNT:          Accept the default (`parse`)
+  APP_ID:               Must match <appId> from the snowflake react-native src/lib/config.js file
+  MASTER_KEY:           Must match <masterKey> from the snowflake react-native src/lib/config.js file
+  SERVER_URL:           Replace 'yourappname' to match your Heroku 'App_Name' (http://<yourappname>.herokuapp.com/parse)
+```
 
-* Clone the repo and change directory to it
-* Log in with the [Heroku Toolbelt](https://toolbelt.heroku.com/) and create an app: `heroku create`
-* Use the [mLab addon](https://elements.heroku.com/addons/mongolab): `heroku addons:create mongolab:sandbox --app YourAppName`
-* By default it will use a path of /parse for the API routes.  To change this, or use older client SDKs, run `heroku config:set PARSE_MOUNT=/1`
-* Deploy it with: `git push heroku master`
-
-### Getting Started With AWS Elastic Beanstalk
-
-#### With the Deploy to AWS Button
-
-<a title="Deploy to AWS" href="https://console.aws.amazon.com/elasticbeanstalk/home?region=us-west-2#/newApplication?applicationName=ParseServer&solutionStackName=Node.js&tierName=WebServer&sourceBundleUrl=https://s3.amazonaws.com/elasticbeanstalk-samples-us-east-1/eb-parse-server-sample/parse-server-example.zip" target="_blank"><img src="http://d0.awsstatic.com/product-marketing/Elastic%20Beanstalk/deploy-to-aws.png" height="40"></a>
-
-#### Without It
-
-* Clone the repo and change directory to it
-* Log in with the [AWS Elastic Beanstalk CLI](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html), select a region, and create an app: `eb init`
-* Create an environment and pass in MongoDB URI, App ID, and Master Key: `eb create --envvars DATABASE_URI=<replace with URI>,APP_ID=<replace with Parse app ID>,MASTER_KEY=<replace with Parse master key>`
-
-### Getting Started With Microsoft Azure App Service
-
-#### With the Deploy to Azure Button
-
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)
-
-#### Without It
-
-A detailed tutorial is available here:
-[Azure welcomes Parse developers](https://azure.microsoft.com/en-us/blog/azure-welcomes-parse-developers/)
-
-
-### Getting Started With Google App Engine
-
-1. Clone the repo and change directory to it 
-1. Create a project in the [Google Cloud Platform Console](https://console.cloud.google.com/).
-1. [Enable billing](https://console.cloud.google.com/project/_/settings) for your project.
-1. Install the [Google Cloud SDK](https://cloud.google.com/sdk/).
-1. Setup a MongoDB server.  You have a few options:
-  1. Create a Google Compute Engine virtual machine with [MongoDB pre-installed](https://cloud.google.com/launcher/?q=mongodb).
-  1. Use [MongoLab](https://mongolab.com/google/) to create a free MongoDB deployment on Google Cloud Platform.
-1. Modify `app.yaml` to update your environment variables.
-1. Delete `Dockerfile`
-1. Deploy it with `gcloud preview app deploy`
-
-A detailed tutorial is available here:
-[Running Parse server on Google App Engine](https://cloud.google.com/nodejs/resources/frameworks/parse-server)
-
-### Getting Started With Scalingo
-
-#### With the Scalingo button
-
-[![Deploy to Scalingo](https://cdn.scalingo.com/deploy/button.svg)](https://my.scalingo.com/deploy)
-
-#### Without it
-
-* Clone the repo and change directory to it
-* Log in with the [Scalingo CLI](http://cli.scalingo.com/) and create an app: `scalingo create my-parse`
-* Use the [Scalingo MongoDB addon](https://scalingo.com/addons/scalingo-mongodb): `scalingo addons-add scalingo-mongodb free`
-* Setup MongoDB connection string: `scalingo env-set DATABASE_URI='$SCALINGO_MONGO_URL'`
-* By default it will use a path of /parse for the API routes. To change this, or use older client SDKs, run `scalingo env-set PARSE_MOUNT=/1`
-* Deploy it with: `git push scalingo master`
-
-### Getting Started With OpenShift Online (Next Gen)
-
-1. Register for a free [OpenShift Online (Next Gen) account](http://www.openshift.com/devpreview/register.html)
-1. Create a project in the [OpenShift Online Console](https://console.preview.openshift.com/console/).
-1. Install the [OpenShift CLI](https://docs.openshift.com/online/getting_started/beyond_the_basics.html#btb-installing-the-openshift-cli).
-1. Add the Parse Server template to your project: `oc create -f https://raw.githubusercontent.com/ParsePlatform/parse-server-example/master/openshift.json`
-1. Deploy Parse Server from the web console
-  1. Open your project in the [OpenShift Online Console](https://console.preview.openshift.com/console/):
-  1. Click **Add to Project** from the top navigation
-  1. Scroll down and select **NodeJS > Parse Server**
-  1. (Optionally) Update the Parse Server settings (parameters)
-  1. Click **Create**
-
-A detailed tutorial is available here:
-[Running Parse Server on OpenShift Online (Next Gen)](https://blog.openshift.com/parse-server/)
-
-# Using it
-
-Before using it, you can access a test page to verify if the basic setup is working fine [http://localhost:1337/test](http://localhost:1337/test).
-Then you can use the REST API, the JavaScript SDK, and any of our open-source SDKs:
+* Add the following additional environment variables which will be used to configure `parse-server`:
+	- Click on `Settings` in the upper menu bar
+	- Click on `Reveal Config Vars`
+	- Set the following `Key` and `Value` pairs:
+```	
+  MONGODB_URI:          This variable is created automatically for you -- don't modify its value
+  APP_NAME:             Choose the app name you want to appear in email confirmation & password reset and emails					
+  MAILGUN_API_KEY:      Must match Mailgun `Active API Key`
+  MAILGUN_DOMAIN:       Must match your <custom domain name>
+  MAILGUN_FROM_ADDRESS: Use <anything>@<custom domain name>
+  VERBOSE:              Set to true so Heroku keeps detailed logs
+```
+	
+#### Deploy parse-server locally
+* Configure the same set of environment variables on your local computer
+* For example, on MacOS, edit the `~/.bash_profile` file and add the following:
+```
+  export APP_ID= "<same as above>"
+  export APP_NAME="<same as above>"
+  export MAILGUN_API_KEY="<same as above>"
+  export MAILGUN_DOMAIN="<same as above>"
+  export MAILGUN_FROM_ADDRESS="<same as above>"
+  export MASTER_KEY="<same as above>"
+  export MONGODB_URI="<same as above>"
+  export PARSE_MOUNT="<same as above>"
+  export SERVER_URL="http://localhost:1337/parse"
+```
+	
+* You'll need to relaunch MacOS terminal to set the new environment variables
+* Type `npm install` from your `parse-server-example` project directory
+* Type `npm start` to start `parse-server`
 
 Example request to a server running locally:
 
-```curl
+```
 curl -X POST \
-  -H "X-Parse-Application-Id: myAppId" \
+  -H "X-Parse-Application-Id: <APP_ID>" \
   -H "Content-Type: application/json" \
   -d '{"score":1337,"playerName":"Sean Plott","cheatMode":false}' \
   http://localhost:1337/parse/classes/GameScore
@@ -122,43 +146,76 @@ curl -X POST \
   http://localhost:1337/parse/functions/hello
 ```
 
-Example using it via JavaScript:
-
-```javascript
-Parse.initialize('myAppId','unused');
-Parse.serverURL = 'https://whatever.herokuapp.com';
-
-var obj = new Parse.Object('GameScore');
-obj.set('score',1337);
-obj.save().then(function(obj) {
-  console.log(obj.toJSON());
-  var query = new Parse.Query('GameScore');
-  query.get(obj.id).then(function(objAgain) {
-    console.log(objAgain.toJSON());
-  }, function(err) {console.log(err); });
-}, function(err) { console.log(err); });
+#### Test local parse-server with your snowflake app
+* Follow instructions to install snowflake app at `https://github.com/bartonhammond/snowflake`
+* Copy src/lib/config.example.js to src/lib/config.js 
+* Change config.js as
+```
+  module.exports = {
+    SESSION_TOKEN_KEY: 'SESSION_TOKEN_KEY',
+  backend: {
+    hapiRemote: false,
+    hapiLocal: false,
+    parseRemote: false,
+    parseLocal:  true
+  },
+  PARSE: {
+    appId: <APP_ID>,              // must match `APP_ID` environmental variable
+    masterKey: '<MASTER_KEY>',    // must match `MASTER_KEY` environmental variable
+    local: {
+      url: '<LOCAL_SERVER_URL>',  // must match *local computer's* `SERVER_URL` environmental variable
+    },
+    remote: {
+      url: '<REMOTE_SERVER_URL>'  // must match *heroku's* SERVER_URL environmental variable
+    } 		
+  }
+}
 ```
 
-Example using it on Android:
-```java
-//in your application class
+#### Deploy parse-server on Heroku
+* Clone this parse-server for Snowflake repo and change directory to it
+* Make sure you have at least Node 4.3. `node --version`
+* Download and install Heroku CLI from `https://devcenter.heroku.com/articles/heroku-command-line#download-and-install`
+** Login into Heroku:
+	- Type `heroku login`
+	- Provide your Heroku credentials
+* Setup a git `remote` to Heroku
+	- Type `heroku git:remote -a <Heroku_App_Name>`
+* Push your repo to Heroku:
+	- Type `git push heroku master`
 
-Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
-  .applicationId("myAppId")
-  .server("http://myServerUrl/parse/")   // '/' important after 'parse'
-  .build());
-
-ParseObject testObject = new ParseObject("TestObject");
-testObject.put("foo", "bar");
-testObject.saveInBackground();
+#### Test remote parse-server with your snowflake app
+* Modify src/lib/config.js 
 ```
-Example using it on iOS (Swift):
-```swift
-//in your AppDelegate
-
-Parse.initializeWithConfiguration(ParseClientConfiguration(block: { (configuration: ParseMutableClientConfiguration) -> Void in
-  configuration.server = "https://<# Your Server URL #>/parse/" // '/' important after 'parse'
-  configuration.applicationId = "<# Your APP_ID #>"
-}))
+  backend: {
+    hapiRemote: false,
+    hapiLocal: false,
+    parseRemote: true,
+    parseLocal:  false
+  },
 ```
-You can change the server URL in all of the open-source SDKs, but we're releasing new builds which provide initialization time configuration of this property.
+
+#### Deploy parser-server-dashboard
+* Parse server dashboard allows you to inspect the contents of the parse database
+* It's to confirm the proper operation of the parse-server when its running either locally and remotely
+* Clone the parse-dashboard from `https://github.com/ParsePlatform/parse-dashboard#getting-started`
+* Install the dashboard:
+```
+  npm install
+```
+* modify the `package.json` file by adding the following two lines in the existing `scripts` section:
+```
+  "scripts": {
+    "local": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL http://localhost:1337/parse",
+    "remote": "node ./Parse-Dashboard/index.js --appId snowflake --masterKey myMasterKey --serverURL https://snowflake-parse.herokuapp.com/parse"
+  }
+```
+* To run parse-dashboard against the local version of parse-server, type:
+```
+  npm run local
+```
+
+* To run parse-dashboard against the local version of parse-server, type:
+```
+  npm run remote
+```
